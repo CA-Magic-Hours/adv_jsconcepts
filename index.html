@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>Advanced JS Concepts</title>
+
+	<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Muli:400,600,700,900" rel="stylesheet">
+	<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+	<header>
+		<h1>Magic Hour: Advanced JS Concepts</h1>
+	</header>
+	<div class="section-wrapper">
+		<section class="questions">
+			<h1 class="section-header">Topics</h1>
+			<ol>
+				<li>Functions are objects; methods; prototypal inheritance</li>
+				<li>"this"</li>
+				<li>Return/break</li>
+				<li>Closures and scope</li>
+				<li>Hoisting</li>
+				<li>Operator precedence; associativity; and coercion</li>
+			</ol>
+			<i class="icon fa fa-question-circle"></i>
+		</section>
+	</div>
+	<div class="section-wrapper">
+		<section class="exercises">
+			<h1 class="section-header">Exercises and Information</h1>
+			<h4 class="note">Important: Make sure to add comments to your code to help your future self.</h4>
+			<ol>
+				<li>Create a copy of your template folder and rename it to adv_jsconcepts.</li>
+				<li>For these exercises, before you actually check to see what the outcome is, think it through and then write your answer down as a comment in your code. Then check the code and see if you got it right.</li>
+				<li>If you did get the answer right - great! If not, add some more comments about what DID happen, and after you see the answer, how it now makes sense to you.</li>
+			</ol>
+		</section>
+	</div>
+	<div class="section-wrapper">
+		<section class="exercises">
+			<h1 class="section-header">
+				Functions are objects; methods; prototypal inheritance
+			</h1>
+			<p>
+				Specifically functions are <b>first-class objects</b>. Functions can be created on the fly, be passed around as arguments to other functions, and be stored in variables - like objects. The difference is functions can be <b>invoked</b>.
+			</p>
+
+			<div class="codewrap noTopBorder">
+				<pre>Let's take a look at this function - just the function.</pre>
+				<code class="prettyprint">
+					function myFunction(a,b) {
+					<br><span class="pd-lf-20">return a+b;</span>
+					<br>};
+					<br>typeof myFunction;
+					<br>typeof myFunction.__proto__;
+					<br>typeof myFunction.__proto__.__proto__;
+				</code>
+				<p>
+					This is a pretty basic function. It takes two arguments ('a' and 'b') and returns the sum of those two arguments. First, let's show ourselves that functions actually <i>are</i> objects using the three lines of code after the function. We get:
+				</p>
+				<code class="prettyprint">
+					<br>typeof myFunction; <span class="pd-lf-20">// function</span>
+					<br>typeof myFunction.__proto__; <span class="pd-lf-20">// function</span>
+					<br>typeof myFunction.__proto__.__proto__; <span class="pd-lf-20">// object</span>
+				</code>
+				<p>
+					Wait, so what is __proto__? <b>__proto__</b> is the actual <b>object</b> on which another object is "based" - the "template" so to speak. It's where JavaScript goes to find <b>methods</b> that aren't explicitly defined on an <i>the</i> initial object, but are available <i>to</i> the object. Some examples of this would be...toLowerCase() or sort(). These are string and array methods, respectively - neither of which are "attached" to the strings and arrays you create every time you code, but are available to these things because JavaScript looks for them up what is called the <b>prototype chain</b>.
+				</p>
+				<p>
+					In addition to __proto__, there is also...<b>prototype</b>. The difference between the two is:
+					<ul>
+						<li>
+							<b>__proto__</b> refers to the actual object that is used in the prototype chain for the purposes of resolving methods, etc.
+						</li>
+						<li><b>prototype</b> refers to the object that is used to <b>build</b> __proto__.</li>
+					</ul>
+				</p>
+				<pre>So, let's take a look at this code:</pre>
+				<code class="prettyprint">
+					function builder(a,b) {
+					<br><span class="pd-lf-20">this.c = a;<?</span>
+					<br><span class="pd-lf-20">this.d = b;</span>
+					<br>};
+					<br>
+					<br>
+					var a = {
+					<br><span class="pd-lf-20">add: function() {</span>
+					<br><span class="pd-lf-40">return this.c + this.d;</span>
+					<br><span class="pd-lf-20">},
+					<br><span class="pd-lf-20">whatIs: function() {
+					<br><span class="pd-lf-40">console.log(this);</span>
+					<br><span class="pd-lf-20">}</span>
+					<br>};
+					<br>
+					<br>
+					builder.prototype = a;
+					<br>
+					<br>var build = new builder(1,2);
+					<br>var build2 = new builder(2,2);
+					<br>build.add();<span class="pd-lf-20">// 3</span>
+					<br>build.whatIs();<span class="pd-lf-20">// 'builder' object with c = 1, d = 2</span>
+					<br>build.add();<span class="pd-lf-20">// 4</span>
+					<br>build2.whatIs();<span class="pd-lf-20">// 'builder' object with c = 2, d = 2</span>
+				</code>
+				<pre>So, I said that <b>prototype</b> <i>defines</i> the object that is used to build <b>__proto__</b>, so let's take a further look: </pre>
+				<code class="prettyprint">
+					<br>console.log(build); <span class="pd-lf-20">// builder {c: 1, d: 2}</span>
+					<br>console.log(build.__proto__); <span class="pd-lf-20">// Object {add: function, whatIs: function}</span>
+					<br>console.log(build2); <span class="pd-lf-20">// builder {c: 2, d: 2}</span>
+					<br>console.log(build2.__proto__); <span class="pd-lf-20">// Object {add: function, whatIs: function}</span>
+				</code>
+				<p>
+					So, what is this showing us exactly? This is showing us exactly how prototypal inheritance works. We have our constructor function, <b>builder</b>, and our variables <b>build</b> and <b>build2</b>. We also have an object, <b>a</b>, that has two methods. Finally, we have that standalone line with the word <b>prototype</b> in it. What this line is doing is <i>setting</i> the prototype of <b>builder</b> (our constructor) equal to the object <b>a</b>. The end result is build and build2 having access to those two methods without ever explicitly defining them.
+				</p>
+				<p>
+					This overall concept isn't 'new' per se - because we've added methods to function constructors before. But this way, we only ever have to 'write' the code for the methods <i>once</i> instead of the methods being created <i>every</i> time a new object is pumped out from our constructor. The end result is the same, and a lot of memory is saved.
+				</p>
+			</div>
+		</section>
+	</div>
+
+	<div class="section-wrapper">
+		<section class="exercises">
+			<h1 class="section-header">
+				"this"
+			</h1>
+			<p>
+				Simply put, "this" is a <i>pointer</i>. "this" points to an object, and what "this" points to can change. A very common misunderstanding is that "this" always points to the object that it is "inside" - this is not the case.
+			</p>
+			<div class="codewrap noTopBorder">
+				<pre>Let's take a look at some code. What is the expected outcome from the console.log()?</pre>
+				<code class="prettyprint">
+					function myFunction() {
+					<br><span class="pd-lf-20">this.a = 5;</span>
+					<br>};
+					<br>myFunction();
+					<br>console.log(a);
+				</code>
+
+				<pre>What happened? What were you expecting? What do we see when we console.log() "this"? What about the global object (window)?</pre>
+				<code class="prettyprint">
+					console.log(this); <span class="pd-lf-20">// Logs the window object</span>
+					<br>console.log(window); <span class="pd-lf-20">// Logs the window object</span>
+				</code>
+				<p>
+					If you look at the object that gets logged, you'll find toward the top a property named "a" with a value of "5". This tells us that in myFunction(), our code actually added the "a" property to the global variable "window" which we pointed to using "this".
+				</p>
+				<p>
+					So why is this exactly? When we've used "this" in our constructor functions it works as expected - our new objects all have the corresponding properties, but here, the property gets bound to the global object. What gives?
+				</p>
+				<p>
+					In this instance, when we invoke myFunction(), we aren't invoking it "on" anything. In our earlier example we had the add() and whatIs() methods that we were invoking on build and build2 (using dot notation). By default, when a function is invoked like this, it bind to the global object, which for browsers is the...window object.
+				</p>
+
+				<pre>Let's take a look at this more fleshed out example:</pre>
+				<code class="prettyprint">
+					var fullname = 'John Doe' <span class="pd-lf-20">// variable in the global scope</span>
+					<br>var obj = {
+					<br><span class="pd-lf-20">fullname: 'Jane Doe',</span>
+					<br><span class="pd-lf-20">prop: {
+					<br><span class="pd-lf-40">fullname: 'Jim Doe',</span>
+					<br><span class="pd-lf-40">getFullName: function() {
+					<br><span class="pd-lf-60">return this.fullname</span>
+					<br><span class="pd-lf-40">},</span>
+					<br><span class="pd-lf-20">}</span>
+					<br>};
+				</code>
+				<pre>What do we expect from the following lines of code?</pre>
+				<code class="prettyprint">
+					console.log(obj.prop.getFullName());
+					<br>var test = obj.prop.getFullName;
+					<br>console.log(test());
+				</code>
+				<p>
+					The first console.log() gives us 'Jim Doe', and the second one gives us 'John Doe'. Remember, <i>how</i> you invoke a function determines <b>what</b> the "this" will point to. In our first console.log(), the function getFullName() is being called <b>on</b> the "prop" object, so "this" will point to that object, and for that object, "fullname" is 'Jim Doe'. In our second example, we've used dot notation to go from the "obj" object, to the "prop" property which is also an object, and then to the getFullName() method, and then simply stored that function in the "test" variable. We console.log() the invoked funtion test(), but the function isn't invoked "on" anything so it defaults to the global object (window) meaning "this" points to the global object, and on the global object, fullname equals 'John Doe'.
+				</p>
+				<p>
+					You might then be asking yourselves, "Why does 'this' work the way it does in constructor functions then? It doesn't make any sense!" Well, the answer to that lies in knowing what the <b>new</b> keyword does. The <b>new</b> keyword is actually creating an instance of a user-defined object (meaning, you follow the keyword with the object that you want it to be). And when you do this, the "this" value always points to the new object being created, which is why constructor functions work the way they do.
+				</p>
+			</div>
+		</section>
+	</div>
+
+	<div class="section-wrapper">
+		<section class="exercises">
+			<h1 class="section-header">
+				Combination Exercise: "this", methods, and prototypal inheritance
+			</h1>
+			<div class="codewrap noTopBorder">
+				<pre>Create a <b>method</b> available to the "String" object that accepts a single argument, specifically a number. The goal of the method is to return a string that is the initial string repeated the number of times as defined by the user's input.</pre>
+				<code class="prettyprint">
+					Result should be something like this:
+					<br>console.log('test'.repeat(2));
+					<br>output: testtest
+				</code>
+			</div>
+			<div class="codewrap noTopBorder">
+				<pre>Let's work through it together!</pre>
+				<code class="prettyprint">
+					String.prototype.repeat = String.prototype.repeat || function(num) {
+					<br><span class="pd-lf-20">var str = '';</span>
+					<br><span class="pd-lf-20">for ( var i = 0; i < num; i++) {</span>
+					<br><span class="pd-lf-40">str += this;</span>
+					<br><span class="pd-lf-20">};</span>
+					<br><span class="pd-lf-20">return str;</span>
+					<br>};
+					<br>
+					<br>console.log('repeat'.repeat(3));
+					<br>output: repeatrepeatrepeat
+				</code>
+				<p>
+					That first line of code is saying the following:
+					<ol>
+						<li>Go to the 'String' object. Go to it's prototype. Now, on that object (the prototype object) I want to create a property called 'repeat'.</li>
+						<li>I want this 'repeat' property to equal...</li>
+						<li>
+							<ol>
+								<li>
+									Itself, if there is an already existing 'repeat' property on the prototype object. We do this as a precaution - if there is already something called 'repeat' (anything, not necessarily a function) we don't want to overwrite it, so we set it equal to itself.
+								</li>
+								<li>A function, if there is nothing by the name of 'repeat' on that object yet.</li>
+							</ol>
+						</li>
+					</ol>
+				</p>
+				<p>
+					After that first line, the rest of the code is pretty clear. "this" is refering to the string that is being repeated. We know this because the repeat() method that we created is being used <b>on</b> the string that the user provided, so that is what "this" is pointing to.
+				</p>
+			</div>
+		</section>
+	</div>
+
+	<div class="section-wrapper">
+		<section class="exercises">
+			<h1 class="section-header">
+				The return and break keywords
+			</h1>
+			<div class="codewrap noTopBorder">
+				<pre>We are all very used to using the "return" keyword at the end of a function to "end" the function. But, that's not the only thing it does. Let's take a look at a couple simple examples.</pre>
+				<code class="prettyprint">
+					function testReturn(a) {
+					<br><span class="pd-lf-20">return a;</span>
+					<br>}
+					<br>
+					<br>
+					function testReturn2() {
+					<br><span class="pd-lf-20">return 5;</span>
+					<br>};
+					<br>
+					<br>
+					function testReturn3(a) {
+					<br><span class="pd-lf-20">return function() {</span>
+					<br><span class="pd-lf-40">return a;</span>
+					<br><span class="pd-lf-20">};</span>
+					<br>};
+					<br>console.log(testReturn(2)); <span class="pd-lf-20">// logs 2</span>
+					<br>console.log(testReturn1()); <span class="pd-lf-20">// logs 5</span>
+					<br>console.log(testReturn2(3)); <span class="pd-lf-20">// logs...a function?</span>
+				</code>
+				<p>
+					Remember, functions are objects so they can be "returned" just like any other object. What the "return" is doing is "giving" you an output. A function issues a command, and the "return" provides a result. A common misconception is that the "return" keyword will also invoke a function if that is what is being returned, so a lot of people will see something like this and expect the output to be a log to the console.
+				</p>
+
+				<pre>The "break" kind of like the "return" keyword, but specificaly for loops, switch statements, and label statements.</pre>
+				<code class="prettyprint">
+					for ( var i = 0; i < 10; i++) {
+					<br><span class="pd-lf-20">if (i - 5 > 5) {</span>
+					<br><span class="pd-lf-40">console.log('Break out!');</span>
+					<br><span class="pd-lf-40">break;</span>
+					<br><span class="pd-lf-20">};</span>
+					<br>console.log(i);
+					<br>};
+				</code>
+				<p>
+					The result is 0 - 5 getting logged and then the message 'Break out!' because the loop was <i>broken out of</i>. Unlike "return" the "break" keyword doesn't "give" anything to the user, it simply jumps out of a loop and then proceeds to the next line of code.
+				</p>
+			</div>
+		</section>
+	</div>
+
+	<div class="section-wrapper">
+		<section class="exercises">
+			<h1 class="section-header">
+				Closures; scope; and parameters/arguments
+			</h1>
+			<div class="codewrap noTopBorder">
+				<pre>Closures are one of the most talked about "advanced" JavaScript concepts. They're surprisingly simply in practice, but pretty confusing to learn. We'll start off with a simple closure.</pre>
+				<code class="prettyprint">
+					function outerFunction() {
+					<br><span class="pd-lf-20">var a = 5;</span>
+					<br>
+					<br><span class="pd-lf-20">function innerFunction() {</span>
+					<br><span class="pd-lf-40">console.log(a);</span>
+					<br><span class="pd-lf-20">};</span>
+					<br>
+					<br>innerFunction();
+					<br>};
+					<br>outerFunction();
+				</code>
+				<p>
+					If we take a look in our developer tools, we can actually see the scope of innerFunction() and what it has available to it. Before we do that though, let's walk through what happens here.
+					<ol>
+						<li>We call outerFunction()</li>
+						<li>The variable 'a' is created and set equal to the number 5</li>
+						<li>We then call innerFunction()</li>
+						<li>innerFunction()'s only line if code is to log 'a' to the console, so it's going to look inside it's local scope.</li>
+						<li>It does not find 'a' inside innerFunction()'s scope, so it moves <b>up</b> the scope chain to it's parent</li>
+						<li>It finds 'a' inside its parent scope, outerFunction(), and then logs the value to the console</li>
+					</ol>
+					A <b>closure</b> is the combination of a function and the lexical environment in which it is declared. Keep in mind that this is <i>not</i> when it is invoked, but <b>where</b> it actually is inside the code. outerFunction() creates a closure around innerFunction() not because innerFunction() is invoked inside outerFunction(), but because it is <b>literally</b> inside outerFunction(). Also, when we say 'lexical' in regards to scope, we're talking about the literal arrangement of the source code.
+				</p>
+
+				<pre>Let's look at another example. Before you actually run the code, make sure to think about what you're expecting to see happen.</pre>
+				<code class="prettyprint">
+					function myFunction() {
+					<br><span class="pd-lf-20">var a = 5;</span>
+					<br><span class="pd-lf-20">myOtherFunction();</span>
+					<br>};
+					<br>
+					<br>function myOtherFunction() {</span>
+					<br><span class="pd-lf-40">console.log(a);</span>
+					<br>};
+					<br>
+					<br>myFunction();
+				</code>
+				<pre>So, what did you expect to happen? Did it happen? Let's go through what <i>did</i> happen.</pre>
+				<ol>
+					<li>We declared two functions: myFunction() and myOtherFunction(), each with their own scope</li>
+					<li>We invoke myFunction()</li>
+					<li>Inside myFunction() we create variable 'a' and set it equal to the number 5. Then we invoke myOtherFunction()</li>
+					<li>myOtherFunction() tries to run its code, but cannot find 'a' in its local scope. So, it moves one level up - to the global scope.</li>
+					<li>There is no 'a' in the global scope, because 'a' is declared inside myFunction() so it is scoped</li>
+					<li>Because myOtherFunction() cannot find 'a' it returns an error</li>
+				</ol>
+				<p>
+					Were you expecting the number 5 to be logged to the console? If so, that is a common expectation. The invokation of myOtherFunction() comes after the variable definition, so it <i>looks</i> like it would make sense. But, that's not how scope works, and if we wanted to make this work, we would have to pass 'a' to myOtherFunction() as an argument - this is how you pass information from function to function.
+				</p>
+
+				<pre>Let's take a look at another example of a closure now that we have a better understanding of scope (and a better understanding of what the "return" keyword does). What do you expect to be logged to happen?</pre>
+				<code class="prettyprint">
+					function outerFunction() {
+					<br><span class="pd-lf-20">var a = 5;</span>
+					<br><span class="pd-lf-20">return function innerFunction() {</span>
+					<br><span class="pd-lf-40">console.log(a);</span>
+					<br><span class="pd-lf-20">};</span>
+					<br>};
+					<br>var b = outerFunction();
+				</code>
+				<p>
+					So, before we move on, what do we know?
+					<ol>
+						<li>outerfunction(), when invoked, returns a function</li>
+						<li>This means that 'b' <b>is</b> a function</li>
+						<li>We also know that you can't interact with 'stuff' inside of a function because it's scoped</li>
+						<li>Additionally, since 'b' is a function, that means outerFunction() is <b>done</b>. We know this because it returned what it is supposed to return, and the return keyword "ends" a function</li>
+					</ol>
+				</p>
+				<pre>With all that out of the way - what happens when we invoke 'b' (since it is a function)?</pre>
+				<code class="prettyprint">
+					b(); <span class="pd-lf-20">// logs 5</span>
+				</code>
+				<p>
+					This is where closures start to get a little weird, and things start to not make as much sense. It makes sense that 'b' is a funciton, sure - the outerFunction() returned a value that happened to be a function, got it. Functions can be invoked, got it. But - how does 'b' (which is innerFunction()) know that 'a' is 5? outerFunction() is done running, and when a function is done running all the variables that were inside it are gone and no longer in memory. What gives?
+				</p>
+				<p>
+					Remember exactly what a closure is: the combination of a function and the <b>lexical environment in which it is declared</b>. The key thing to take away from this is the word "declared" and the fact that it's NOT "invoked".
+					<ol>
+						<li>innerFunction() is written <b>inside</b> outerFunction(), meaning innerFunction() itself was <b>declared</b> inside outerFunction().</li>
+						<li>When innerFunction() was 'created' (again, not used/called/invoked) it had access to 'a'</li>
+						<li>When outerFunction() was invoked (by being assigned to the variable 'b') it returned innerFunction() (which still has a reference to 'a')</li>
+						<li>After that, outerFunction() is done running and all the 'stuff' inside it is gone, but innerFunction() still maintains a reference to the 'stuff'</li>
+					</ol>
+					So, given all of that - when b(); is invoked, it logs 5 because it <b>still has a reference to what 'a' was when the function itself was 'created'.</b>
+				</p>
+			</div>
+		</section>
+	</div>
+
+	<div class="section-wrapper">
+		<section class="exercises">
+			<h1 class="section-header">
+				Common closure exercise/coding challenge
+			</h1>
+			<div class="codewrap noTopBorder">
+				<pre>
+					This is a common closure exercise. You know enough to get this working, but it's not as straightforward as the examples we've gone through, and does take some additional thinking.
+
+					The goal is to create 10 buttons (1-10) each with some text that says "Button #" and then when clicked triggers an alert that says "You clicked on button #".
+
+					Good luck!
+				</pre>
+
+				<pre>Common first attempt:</pre>
+				<code class="prettyprint">
+					for (var i = 1; i <= 10; i ++) {
+						<br><span class="pd-lf-20">var btn = document.createElement('button');</span>
+						<br><span class="pd-lf-20">btn.textContent = 'Button #' + i;</span>
+						<br><span class="pd-lf-20">document.body.appendChild(btn);</span>
+						<br><span class="pd-lf-20">btn.addEventListener('click', function() {</span>
+						<br><span class="pd-lf-40">alert('You clicked button #' + i);</span>
+						<br><span class="pd-lf-20">});</span>
+					<br>};
+				</code>
+				<p>
+					Before we get into <i>why</i> this doesn't work, let's first take a minute to talk about why we <i>think</i> it should work.
+					<ol>
+						<li>We use the loop to go through this set of actions 10 times, creating 10 buttons, each with their own unique text, and a function to be called when the button is clicked on.</li>
+						<li>Intuition tells you that 'i' in each alert() should be the value of 'i' at the time that the alert() message was set - right?</li>
+						<li>If that's the case, then it makes sense to expect everything to work as desired.</li>
+					</ol>
+				</p>
+
+				<pre>Clearly things aren't working as desired. All the buttons are saying we've clicked on button #11 - which doesn't even exist! What's happening? Let's take a look at some code to help us understand why our thinking with respect to #2 is wrong.</pre>
+				<code class="prettyprint">
+					var a = 5;
+					<br>var a = 0;
+					<br>console.log(a); <span class="pd-lf-20">// logs 0</span>
+				</code>
+				<p>
+					This might seem basic, but the concept is the same. 'a' is logged as 0 because <b>when the console.log()</b> is actually called, the value of 'a' is 0. If we go back to our code, and console.log() 'i', we will see that i = 11. The key thing to keep in mind is the function isn't being called when we set it using addEventListener(), we're just writing up what it will do <b>when</b> it is called.
+				</p>
+				<pre>
+					Knowing the issue - try making use of a closure. Make it so the function that will eventually call the alert() maintains a reference to the value of 'i' when it is created.
+
+					Common second attempt:
+				</pre>
+
+				<code class="prettyprint">
+					for (var i = 1; i <= 10; i ++) {
+						<br><span class="pd-lf-20">var btn = document.createElement('button');</span>
+						<br><span class="pd-lf-20">btn.textContent = 'Button #' + i;</span>
+						<br><span class="pd-lf-20">document.body.appendChild(btn);</span>
+						<br><span class="pd-lf-20">btn.addEventListener('click', function() {</span>
+						<br><span class="pd-lf-40">return function() {</span>
+						<br><span class="pd-lf-60">alert('You clicked button #' + i);</span>
+						<br><span class="pd-lf-40">};</span>
+						<br><span class="pd-lf-20">});</span>
+					<br>};
+				</code>
+				<p>
+					Not quite what you were expecting, huh? Let's walk through this too:
+					<ol>
+						<li>We add a click event listener, and instead of just running the alert() we return a function which will run the alert() in the hopes that the returned function will maintain a reference to 'i'</li>
+						<li>What happens when we click on the button - code wise?</li>
+							<ol>
+								<li>The function attached to the button is invoked when clicked, and then returns a function</li>
+								<li>Which then goes on to do nothing because...it was never invoked, and has no way to be invoked</li>
+							</ol>
+					</ol>
+					With that out of the way, I'll also go ahead and address the fact that even <i>if</i> this "did" something, it would still return 11 because while the returned function would maintain a reference to the function it was created in (the addEventListener() function), the only scope that has a value for 'i' is the global scope, and it's going to be 11.
+				</p>
+
+				<pre>Alright - let's take a look at the answer! The differences between the answer and the common 2nd attempt have been highlighted.</pre>
+				<code class="prettyprint">
+					for (var i = 1; i <= 10; i ++) {
+						<br><span class="pd-lf-20">var btn = document.createElement('button');</span>
+						<br><span class="pd-lf-20">btn.textContent = 'Button #' + i;</span>
+						<br><span class="pd-lf-20">document.body.appendChild(btn);</span>
+						<br><span class="pd-lf-20">btn.addEventListener('click', function(<mark>x</mark>) {</span>
+						<br><span class="pd-lf-40">return function() {</span>
+						<br><span class="pd-lf-60">alert('You clicked button #' + <mark>x</mark>);</span>
+						<br><span class="pd-lf-40">};</span>
+						<br><span class="pd-lf-20">}<mark>(i)</mark>);</span>
+					<br>};
+				</code>
+				<p>
+					It works! Why though? So, that bit of code with the addEventListner() is key. Specifically the part where we've invoked the function inside the addEventListener(). The function itself does what our 2nd example does - it returns another function. The key difference is that instead of using 'i' in the alert, it uses 'x'.
+					<ol>
+						<li>When the function inside addEventListener() is invoked, it does its job and returns the function. This might seem confusing because, isn't that what the 2nd attempt did?</li>
+						<li>No, and the difference is that the 2nd attempt didn't invoke the funciton in addEventListener(), but simply allowed it to be set as the function bound to the button.</li>
+						<li>What this attempt has done, has invoked that function, and then bound the button's click event to the <b>returned function instead</b>.</li>
+						<li>So, each time the loop iterates, it invokes the function inside addEventListener() passing in 'i' as an argument.</li>
+						<li>The returned function then gets bound to the button, and has an alert() that contains the message '"You clicked button #" + x'.</li>
+						<li>This is where it's important to pay attention, because in this returned function, there is no 'x' variable in the local scope. However, if we go up into the parent function (the one in addEventListener() that gets invoked) we will see that we've set 'x' as a parameter (the only parameter) to the function.</li>
+						<li>So, each time the function gets invoked, it is passing in the current value of 'i', and then that value is getting 'saved' as 'x' so that when the returned function gets invoked and starts looking for 'x' it finds it in the parent function's scope.</li>
+						<li>This works this way because when the returned function is created each time the loop occurs, the value of 'x' changes (because the loop is iterating, and 'i' is changing), and each subsequent returned function maintains a reference to a different 'x' value.</li>
+					</ol>
+				</p>
+			</div>
+		</section>
+	</div>
+
+	<div class="section-wrapper">
+		<section class="exercises">
+			<h1 class="section-header">
+				Hard Closure Challenge
+			</h1>
+			<div class="codewrap noTopBorder">
+
+				<pre>What do you expect the code to do?</pre>
+				<code class="prettyprint">
+					function buildList(list) {
+					<br><span class="pd-lf-20">var result = [];</span>
+					<br><span class="pd-lf-20">for ( var i = 0; i < list.length; i++) {</span>
+					<br><span class="pd-lf-40">var item = 'item' + i;</span>
+					<br><span class="pd-lf-40">result.push(</span>
+					<br><span class="pd-lf-60">function() {</span>
+					<br><span class="pd-lf-80">console.log(item + ' ' + list[i]);</span>
+					<br><span class="pd-lf-60">}</span>
+					<br><span class="pd-lf-40">);</span>
+					<br><span class="pd-lf-20">};</span>
+					<br><span class="pd-lf-20">return result;</span>
+					<br>};
+					<br>
+					<br>
+					function testList() {
+					<br><span class="pd-lf-20">var fnlist = buildList([1,2,3]);</span>
+					<br><span class="pd-lf-20">for ( var j = 0; j < fnlist.length; j++) {</span>
+					<br><span class="pd-lf-40">fnlist[j]();</span>
+					<br><span class="pd-lf-20">};</span>
+					<br>};
+					<br>
+					<br>
+					testList();
+				</code>
+				<pre>You might be shocked to find that the code prints...this:</pre>
+				<code class="prettyprint">
+					item2 undefined <span class="pd-lf-20">// printed 3 times</span>
+				</code>
+				<p>
+					This is confusing to a lot of people, for many reasons - the things to think about are what are the values of 'i' at the different stages of the code, and <i>exactly what is being pushed to the 'result' array</i>. With that said, lets break this one down:
+					<ol>
+						<li>testList() gets invoked to start things off</li>
+						<li>testList() creates a variable 'fnlist' that is equal to (the returned value of) buildList([1,2,3]) - meaning we now have to go through buildList() in order to continue with testList()</li>
+						<li>Inside buildList() we create a variable 'result' and set it equal to an empty array</li>
+						<li>We go into a for loop</li>
+						<li>We create a variable 'item' and set it equal to 'item0' ('item' + i)</li>
+						<li>Then we push() a function to 'result'</li>
+						<li>The function's code is a console.log() of 'item' and 'list[i]' - it's important to keep in mind that at this point the function's code has <b>not</b> been run yet, so while it looks like these things 'have value' they really don't</li>
+						<li>We iterate through the loop again, this time setting 'item' equal to 'item1' (loop goes from 0 to 1)</li>
+						<li>We push another function with the same body of code - still not invoked, so 'item' and 'list[i]' still have no value</li>
+						<li>We iterate through the loop again, this time setting 'item' equal to 'item2' - keep in mind this is the 3rd time through the loop</li>
+						<li>We push another function with the same body of code - still not invoked</li>
+						<li>
+							The value of 'i' is now 3, the length of 'list' is 3, and 3 is <b>not</b> less than 3, so the loop ends
+							<ol>
+								<li>Make note of the fact that 'i' is equal to 3 at this point. The reason the loop even ends is <i>because</i> 'i' is equal to 3</li>
+								<li>At the same time, make sure to take note of the last value that 'item' held - while 'i' might be equal to 3, because we never went <b>back</b> into the loop while 'i' was equal to 3, the <b>last remaining value</b> that was stored in 'item' was <b>item2</b></li>
+							</ol>
+						</li>
+						<li>
+							With the loop done, we return 'result', which currently holds the 3 functions that we pushed into it
+							<ul>
+								<li>Remember that we just 'put' the functions in the array - we did <b>not</b> invoke them, so the function code was never called</li>
+								<li>The actual function body is: console.log(item + ' ' + list[i]) - 'item' and 'list[i]' don't have any value until the function is called</li>
+							</ul>
+						</li>
+						<li>
+							So, now that we are done with buildList() we go <i>back</i> into testList()
+							<ul>
+								<li>Remember that buildList() returns 'result'</li>
+								<li>This means that when all is said and done buildList([1,2,3]) = result</li>
+								<li>so 'fnlist' = result</li>
+							</ul>
+						</li>
+						<li>So, we go into the loop inside testList() and target the 0-index item of 'fnlist' - which as we remember is a function - and finally invoke it</li>
+						<li>
+							When we finally invoke this function, it is going to try and console.log() 'item' and 'list[i]'
+							<ol>
+								<li>It will look in it's local scope for 'item' and 'list[i]' and find nothing, so it will move to it's parent scope</li>
+								<li>It <b>will</b> find 'item' in its parent scope (buildList()), and as we noted - it is equal to 'item2'</li>
+								<li>Likewise, it <b>will</b> find a value for 'i' which is 3, and will then look for list[3] - which doesn't exist, because 'list' is the array [1,2,3] - there is no 3-index in this array</li>
+								<li>When the console.log() takes place, it logs 'item2 undefined'</li>
+							</ol>
+						</li>
+						<li>Because all 3 functions are identical, they all log the same message to the console, which is why we get 'item2 undefined' three times</li>
+					</ol>
+				</p>
+			</div>
+		</section>
+	</div>
+
+	<div class="section-wrapper">
+		<section class="exercises">
+			<h1 class="section-header">
+				Hoisting
+			</h1>
+			<div class="codewrap noTopBorder">
+				<pre>Hoisting is what the JavaScript engine does when you declare a variable or function - it brings it to the top of the current scope. It doesn't do any assigning, just the variable declaration.</pre>
+				<code class="prettyprint">
+					console.log(a); <span class="pd-lf-20">// Logs 'undefined'</span>
+					<br>var a = 5;
+					<br>
+					<br>
+					function hoistingTest() {
+					<br><span class="pd-lf-20">console.log(b);</span> <span class="pd-lf-20">// Logs 'undefined'</span>
+					<br><span class="pd-lf-20">var b = 5;</span>
+					<br>};
+					<br>hoistingTest();
+				</code>
+				<p>
+					You might have been expecting an error, because 'a' and 'b' didn't 'exist' yet when the console.log() was called. The fact is they <b>do</b> exist, they simply don't have a defined value, which is why the log returns 'undefined'. The above code could basically be written like this:
+				</p>
+				<code class="prettyprint">
+					var a;
+					<br>console.log(a); <span class="pd-lf-20">// Logs 'undefined'</span>
+					<br>a = 5;
+					<br>
+					<br>
+					function hoistingTest() {
+					<br><span class="pd-lf-20">var b;</span>
+					<br><span class="pd-lf-20">console.log(b);</span> <span class="pd-lf-20">// Logs 'undefined'</span>
+					<br><span class="pd-lf-20">b = 5;</span>
+					<br>};
+					<br>hoistingTest();
+				</code>
+				<pre>What about this example?</pre>
+				<code class="prettyprint">
+					var a = '$1000';
+					<br>function hoistingTest() {
+					<br><span class="pd-lf-20">var salary = 'I make ' + a + ' per week.';</span>
+					<br><span class="pd-lf-20">console.log(salary);</span>
+					<br><span class="pd-lf-20">var a = '$5000';</span>
+					<br>};
+					<br>hoistingTest(); <span class="pd-lf-20">// Logs 'I make undefined per week.'</span>
+				</code>
+				<p>
+					This happens because the function has its own scope, so it can have its own local variables - even if they share a name with a global variable. When 'a' is <b>declared</b> inside the function, it gets hoisted to the top of the function - but the value is not brought with it. So, 'a' ends up undefined.
+				</p>
+				<pre>What if we did this?</pre>
+				<code class="prettyprint">
+					var a = '$1000';
+					<br>hoistingTest();
+					<br>function hoistingTest() {
+					<br><span class="pd-lf-20">var salary = 'I make ' + a + ' per week.';</span>
+					<br><span class="pd-lf-20">console.log(salary);</span>
+					<br><span class="pd-lf-20">var a = '$5000';</span>
+					<br>};
+				</code>
+				<p>
+					Surprisingly, we do <i>not</i> get an error - we get the same message as the previous example. This is because <b>functions</b> are also hoisted, and you can't really separate the body of the function from the declaration of the function.
+				</p>
+				<pre>Knowing that variables are hoisted without their value attached, but functions are hoisted <i>with</i> their value, what do you expect to happen here?</pre>
+				<code class="prettyprint">
+					var a = '$1000';
+					<br>hoisted();
+					<br>var hoisted = function() {
+					<br><span class="pd-lf-20">var salary = 'I make ' + a + ' per week.';</span>
+					<br><span class="pd-lf-20">console.log(salary);</span>
+					<br><span class="pd-lf-20">var a = '$5000';</span>
+					<br>};
+				</code>
+				<p>
+					We finally get our error! This is because we've set 'hoisted' equal to a function, but 'hoisted' is still just a variable. So, it gets hoisted <i>without</i> it's value, and when we then try to invoke it, it's not <i>yet</i> a function (and is actually 'undefined'). You can't invoke 'undefined' so we get our error.
+				</p>
+			</div>
+		</section>
+	</div>
+
+	<div class="section-wrapper">
+		<section class="exercises">
+			<h1 class="section-header">
+				Operator precedence; associativity; and coercion
+			</h1>
+			<div class="codewrap noTopBorder">
+				<pre>Operator precedence and associativity dictate in what order and what direction things happen in JavaScript. Let's take a look at some code.</pre>
+				<code class="prettyprint">
+					console.log(5 + 5); <span class="pd-lf-20">// Logs 10</span>
+					<br>console.log(5 === 5); <span class="pd-lf-20">// Logs 'true'</span>
+					<br>console.log(5 < 5); <span class="pd-lf-20">// Logs 'false'</span>
+				</code>
+				<pre>
+					This is all pretty simple because we're only dealing with a single 'thing' happening: addition, strict equality, and a greater than check. What if we start combining things?
+				</pre>
+				<code class="prettyprint">
+					console.log(5 + 5 + (2 * 2)); <span class="pd-lf-20">// Logs 14</span>
+					<br>console.log(5 === 5 && 2 > 4); <span class="pd-lf-20">// Logs 'false'</span>
+					<br>console.log(5 < 5 || 2 === 2); <span class="pd-lf-20">// Logs 'true'</span>
+				</code>
+				<pre>
+					Still pretty basic, lets look at some 'weirder' examples then.
+				</pre>
+				<code class="prettyprint">
+					console.log(false == 0);
+					<br>console.log(5 === 5 === 5);
+					<br>console.log(5 === 5 == 1);
+				</code>
+				<pre>What did we get?</pre>
+				<code class="prettyprint">
+					console.log(false == 0); <span class="pd-lf-20">// Logs 'true'</span>
+					<br>console.log(5 === 5 === 5); <span class="pd-lf-20">// Logs 'false'</span>
+					<br>console.log(5 === 5 == 1); <span class="pd-lf-20">// Logs 'true'</span>
+				</code>
+				<p>
+					So, when dealing with instances where you're handling multiple comparisons like this, you have to look at operator precedence to find out which action takes place first. Just like PEMDAS in math certain operators take place before others. Additionally, these operators also work in a specific <i>direction</i>. If we look at the 3rd example 'equality' (==) and 'strict equality' (===) work in a left-to-right manner and are equal in terms of precedence. So, what happens is:
+					<ol>
+						<li>5 === 5: resolves as 'true', because it is</li>
+						<li>Then, we end up with true == 1, which is also true due to coercion (true coerces to 1)</li>
+					</ol>
+					What about that 2nd example though, that looks strange, right?
+					<ol>
+						<li>5 === 5: resolves as 'true'</li>
+						<li>true === 5: resolves as 'false', because 'true' is not the same value or type as 5.</li>
+					</ol>
+				</p>
+			</div>
+		</section>
+	</div>
+
+
+
+</body>
+</html>
